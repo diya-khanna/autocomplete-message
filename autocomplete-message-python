@@ -1,0 +1,127 @@
+"""
+Purpose: Based on observed words, predict the next word that will be typed.
+"""
+import random
+
+def chooseRandomly(options):
+    """
+      Accepts a sequence of options and returns a random option from that
+      sequence. 
+    """
+    return random.choice(list(options))
+
+def buildPredictions(words):
+    """
+    Takes a list of words, and builds a dictionary where the keys are
+    words and the values are lists of words which appear immediately
+    after a copy of the key word. For example, if the words list was:
+    [ "The", "blue", "whale", "wore", "the", "blue", "hat." ]
+    The resulting dictionary would be:
+    {
+       "the": [ "blue", "blue" ],
+       "blue": [ "whale", "hat." ],
+       "whale": [ "wore" ],
+       "wore": [ "the" ],
+    }
+    Note that all words in the predictions are lower case.
+    """
+ # Start w/ an empty dictionary to accumulate predictions
+    predictions = {}
+# This will keep track of our previous word
+    prev = None
+  
+# Loop through all of the words
+    for word in words:
+    # Make sure we're using lowercase everywhere
+        word = word.lower()
+    # If there is a previous word...
+    if prev != None:
+    # And it's one we've seen before...
+        if prev in predictions:       
+     # Add this word to the list for the previous word
+            predictions[prev].append(word)
+    else:
+    # Otherwise create a new list for the previous word, with
+     # just this word in it
+        predictions[prev] = [word]
+     
+    # Update previous word
+        prev = word
+    # We're done.
+    return predictions
+#--------#
+# Part C #
+#--------# 
+def nextWord(thisWord, predictions, defaultWord):
+    """
+    Given a word and a predictions dictionary produced by
+    `buildPredictions`, predicts what the next word will be using
+    `chooseRandomly`. If the current word does not have an entry in the
+    provided predictions dictionary, the given `defaultWord` will be
+    returned.
+    Ignores case when looking for `thisWord` in the predictions
+    dictionary (whose keys must be in lower-case).
+    """
+    thisWord = thisWord.lower()
+    if thisWord not in predictions:
+        return defaultWord
+    else:
+        return chooseRandomly(predictions[thisWord]) 
+#--------#
+# Part B #
+#--------#
+  
+def predictText(startWord, howMany, predictions):
+    """
+    Takes a starting word and a dictionary of predictions (see
+    buildPredictions) and generates a list with howMany additional words
+    following the given starting word using `nextWord`. The default word
+    that `nextWord` needs to use if the current word isn't in the
+    predictions dictionary will be the start word.
+    """
+    # Start with the start word in our result and as our previous word
+    result = [ startWord ]
+    thisWord = startWord
+
+    # Repeat howMany times
+    for i in range(howMany):
+        next = nextWord(thisWord, predictions, startWord)
+        result.append(next)
+        thisWord = next
+    # We're done with the loop, so return our result
+    return result
+
+def predictText2(startWord, howMany, predictions):
+    """
+    An alternate implementation of predictText that uses a while loop
+    instead of a for loop, and instead of remembering the previous word
+    in a variable it just keeps accessing the last element of the list
+    it's building.
+    """
+ # Start with the start word in our result and as our previous word
+    result = [ startWord ]
+    while len(result) < howMany + 1:# repeat until our result is long enough
+# the previous word is always the last word in our result.
+        thisWord = result[-1]
+# Figure out the next word and add it to our result
+        result.append(nextWord(thisWord, predictions, startWord))
+# We're done with the loop, so return our result
+    return result
+#-----------#
+# Challenge #
+#-----------#
+def resample(inputFilename, outputFilename, nWords):
+    """
+    Reads the words in the input file, builds a predictions dictionary
+    from them, then writes `nWords` of output into the output file based
+    on those predictions, starting with the same first word as the input
+    file.
+    """
+    with open(inputFilename, 'r') as fileInput:
+        words = fileInput.read().split()
+        predictions = buildPredictions(words)
+        resampled = predictText(words[0], nWords, predictions)
+    with open(outputFilename, 'w') as fileOutput:
+        fileOutput.write(' '.join(resampled))
+  
+  
